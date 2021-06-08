@@ -53,3 +53,29 @@ pypi_test:
 
 pypi:
 	@twine upload dist/* -u $(PYPI_USERNAME)
+
+# ----------------------------------
+#      GOOGLE CLOUD PLATEFORM STORAGE
+# ----------------------------------
+# Name of the file
+BUCKET_FILE_NAME=sirene_nice_clean.csv
+# path of the file to upload to gcp (the path of the file should be absolute or should match the directory where the make command is run)
+
+LOCAL_PATH=raw_data/${BUCKET_FILE_NAME}
+# project id
+PROJECT_ID=wagon-bootcamp-610
+
+# bucket name
+BUCKET_NAME=trampact_storage
+
+# bucket directory in which to store the uploaded file (we choose to name this data as a convention)
+BUCKET_FOLDER=data
+
+# REGION
+REGION=europe-west1
+
+create_bucket:
+	-@gsutil mb -l ${REGION} -p ${PROJECT_ID} gs://${BUCKET_NAME}
+
+upload_data:
+	-@gsutil cp ${LOCAL_PATH} gs://${BUCKET_NAME}/${BUCKET_FOLDER}/${BUCKET_FILE_NAME}
