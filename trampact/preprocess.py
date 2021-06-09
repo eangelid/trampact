@@ -5,7 +5,6 @@ def get_data(file_name, is_local_csv=False):
     '''If is_local_csv==False, the method assumes that file_name is a valid URL'''
     df_data = None
     if is_local_csv:
-        print(os.path.dirname(__file__))
         csv_path = os.path.join(os.path.dirname(__file__), 'data')
 
         df_data = pd.read_csv(os.path.join(csv_path, file_name))
