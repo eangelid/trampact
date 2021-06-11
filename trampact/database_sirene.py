@@ -239,11 +239,11 @@ class Data_sirene_nice:
         return f"generation du ficher {fichier_t1}: ok"
     
 # if __name__=='__main__':
-#     # data=data_sirene_nice.get_data()
-#     # features=data_sirene_nice.get_feature()
+#     # data=Data_sirene_nice.get_data()
+#     # features=Data_sirene_nice.get_feature()
 #     # liste_features=features.features.unique()
-#     #print(data_sirene_nice.get_feature_interressant())
-#     #entreprise_df_clean=data_sirene_nice.clean_data()
+#     #print(Data_sirene_nice.get_feature_interressant())
+#     #entreprise_df_clean=Data_sirene_nice.clean_data()
 #     #print(entreprise_df_clean)
 #     entreprise_df=Data_sirene_nice.sirene_distance_df()
 #     entreprise_t1_df=Data_sirene_nice.sirene_t1_df()
