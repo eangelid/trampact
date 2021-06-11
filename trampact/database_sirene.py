@@ -2,7 +2,7 @@ import pandas as pd
 import os
 import numpy as np
 
-class data_sirene_nice:
+class Data_sirene_nice:
     
     def __init__(self):
         pass
@@ -27,7 +27,7 @@ class data_sirene_nice:
         #
         #Mise a jour: 11/06/2021
         #----------end info---------------
-        entreprise_df=data_sirene_nice.get_data()
+        entreprise_df=Data_sirene_nice.get_data()
         features=pd.DataFrame(entreprise_df.columns,columns=["features"])
         return features
     
@@ -69,7 +69,7 @@ class data_sirene_nice:
         #
         #Mise a jour: 11/06/2021
         #----------end info---------------
-        entreprise_df=data_sirene_nice.get_data()
+        entreprise_df=Data_sirene_nice.get_data()
         #Convertion de donnée data
         entreprise_df["Date de création de l'établissement"]=\
         entreprise_df["Date de création de l'établissement"].replace(' ',"1944-08-28")
@@ -135,10 +135,13 @@ class data_sirene_nice:
         point_trajet_tram_df = pd.read_csv(fichier)
         return point_trajet_tram_df
         
-    def calcul_feature_distance():
+    def sirene_distance_df():
         #----------info---------------
-        #Calcul les distances des entreprise et la ligne de tram
-        # ==>
+        #Renvoie le dataframe original avec 2 features supplementaire
+        #2 nouvelles features:
+        #  1) distance tram t1 ==> Distance entre le commerce et la ligne de t1
+        #  2) proche tram t1 ==> 'oui' ou 'non' indique si le commerce est proche de 500 m de la ligne de tram
+        # Return==> dataframe
         #
         #Mise a jour: 11/06/2021
         #----------end info---------------
@@ -153,59 +156,95 @@ class data_sirene_nice:
         #print('500m de distance',cinq_cent_metre)
         
         #recup le data set
-        entreprise_df_clean_coord=data_sirene_nice.clean_data()
-        entreprise_df_clean_coord=entreprise_df_clean_coord.loc[:,['siret','y','x']]
-        point_trajet_tram_df=data_sirene_nice.trace_tramway()
+        entreprise_df_clean_coord=Data_sirene_nice.clean_data()
+        entreprise_df_clean_coord_reduc=entreprise_df_clean_coord.loc[:,['siret','y','x']]
+        point_trajet_tram_df=Data_sirene_nice.trace_tramway()
         #Calcul des distance entre les commerces et la ligne de tram.
         #2 nouvelles features:
         #  1) distance tram t1 ==> Distance entre le commerce et la ligne de t1
-        #  2) proche tram t1 ==> 'oui' ou 'non' indique si le commerce est proche de 100 m de la ligne de tram
-        siret_proche_T1=[]
-        proche_T1=[]
+        #  2) proche tram t1 ==> 'oui' ou 'non' indique si le commerce est proche de 500 m de la ligne de tram
         distance_proche_T1=[]
         tmp_distance=99999999999.9
-        for i in range(0,len(entreprise_df_clean_coord)):
+        for i in range(0,len(entreprise_df_clean_coord_reduc)):
             tmp_distance=99999999999.9
             oui=0
             for ii in range( 0, len(point_trajet_tram_df)):
                 #calcul de la distance entre 1 point tram (ii) et le commerce(i)
                 distance=(
-                    (entreprise_df_clean_coord.y[i]-point_trajet_tram_df.y[ii])**2+
-                    (entreprise_df_clean_coord.x[i]-point_trajet_tram_df.x[ii])**2
+                    (entreprise_df_clean_coord_reduc.y[i]-point_trajet_tram_df.y[ii])**2+
+                    (entreprise_df_clean_coord_reduc.x[i]-point_trajet_tram_df.x[ii])**2
                     )**0.5
                 if distance<tmp_distance:
                         tmp_distance=distance
-                if distance <cinq_cent_metre:
-                    oui=1
-            if oui:
-                if len(siret_proche_T1)>=1:
-                    siret_unique=0
-                    for iii in range(0,len(siret_proche_T1)):
-                        if entreprise_df_clean_coord.siret[i]==siret_proche_T1[iii]:
-                            siret_unique=1    
-                    if siret_unique:
-                        proche_T1.append('oui')
-                        siret_proche_T1.append(entreprise_df_clean_coord.siret[i])
-                else:
-                    proche_T1.append('oui')
-                    siret_proche_T1.append(entreprise_df_clean_coord.siret[i])
-            else:
-                proche_T1.append('non')
-                siret_proche_T1.append(entreprise_df_clean_coord.siret[i])
             #Convertion en distance mettre
             tmp_distance_metre=(500*tmp_distance)/cinq_cent_metre
             #Convertion en distance mettre
             distance_proche_T1.append(round(tmp_distance_metre,2))
-
-
-
-if __name__=='__main__':
-    # data=data_sirene_nice.get_data()
-    # features=data_sirene_nice.get_feature()
-    # liste_features=features.features.unique()
-    #print(data_sirene_nice.get_feature_interressant())
-    #entreprise_df_clean=data_sirene_nice.clean_data()
-    #print(entreprise_df_clean)
-    test=data_sirene_nice.calcul_feature_distance()
+        #Injection dans le data frame initial
+        entreprise_t1_df=pd.concat([
+                                entreprise_df_clean_coord,
+                                pd.DataFrame(distance_proche_T1,columns=['distance tram t1'])    
+                                    ], axis=1)
+        #Creation de la feature "proche t1" avec oui ou non
+        entreprise_t1_df["proche t1"]=\
+        entreprise_t1_df['distance tram t1'].apply(lambda x: 'oui' if x<=500 else 'non')       
+        return entreprise_t1_df  
     
-    print('ok')
+    def sirene_t1_df():
+        #----------info---------------
+        #Renvoie avec les entreprise proche de la T1
+        #   ==> dataframe
+        #
+        #Mise a jour: 11/06/2021
+        #----------end info---------------
+        entreprise_t1_df=Data_sirene_nice.sirene_distance_df()
+        entreprise_proche_t1_df=entreprise_t1_df[entreprise_t1_df["proche t1"]=='oui']
+        entreprise_proche_t1_df=entreprise_proche_t1_df.reset_index(drop=True)
+        return entreprise_proche_t1_df
+    
+    def ecriture_sirene_clean(fichier='sirene_nice_clean.csv'):
+        #----------info---------------
+        #Ecriture du fichier sirene propre
+        # ==>
+        #
+        #Mise a jour: 11/06/2021
+        #----------end info---------------
+        # Path
+        path_v2=".."
+        path_v3 = "raw_data"
+        # Join various path components 
+        fichier_out=os.path.join(path_v2,path_v3, fichier)
+        #recup dataframe
+        entreprise_df=Data_sirene_nice.sirene_distance_df()
+        #dataframe clean ==> sortie CSV
+        entreprise_df.to_csv(fichier_out)
+        return f"generation du ficher {fichier_out}: ok"
+    
+    def ecriture_sirene_t1_clean(fichier_t1='sirene_nice_clean_T1.csv'):
+        #----------info---------------
+        #Ecriture du fichier sirene prochde de t1 propre
+        # ==>
+        #
+        #Mise a jour: 11/06/2021
+        #----------end info---------------
+        # Path
+        path_v2=".."
+        path_v3 = "raw_data"
+        # Join various path components 
+        fichier_out=os.path.join(path_v2,path_v3, fichier_t1)
+        #recup dataframe
+        entreprise_df=Data_sirene_nice.sirene_t1_df()
+        #dataframe clean ==> sortie CSV
+        entreprise_df.to_csv(fichier_out)
+        return f"generation du ficher {fichier_t1}: ok"
+    
+# if __name__=='__main__':
+#     # data=data_sirene_nice.get_data()
+#     # features=data_sirene_nice.get_feature()
+#     # liste_features=features.features.unique()
+#     #print(data_sirene_nice.get_feature_interressant())
+#     #entreprise_df_clean=data_sirene_nice.clean_data()
+#     #print(entreprise_df_clean)
+#     entreprise_df=Data_sirene_nice.sirene_distance_df()
+#     entreprise_t1_df=Data_sirene_nice.sirene_t1_df()
+#     print('ok')
