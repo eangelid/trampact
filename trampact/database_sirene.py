@@ -83,6 +83,10 @@ class Data_sirene_nice:
         entreprise_df["Date de fermeture de l'établissement"].replace(' ',"1944-08-28")
         entreprise_df["Date de fermeture de l'établissement"]=pd.to_datetime(entreprise_df["Date de fermeture de l'établissement"])
 
+        entreprise_df["Date de fermeture de l'unité légale"]=\
+        entreprise_df["Date de fermeture de l'unité légale"].replace(' ',"1944-08-28")
+        entreprise_df["Date de fermeture de l'unité légale"]=pd.to_datetime(entreprise_df["Date de fermeture de l'unité légale"])
+
         entreprise_df["Date du début de la période de l'établissement"]=\
         entreprise_df["Date du début de la période de l'établissement"].replace(' ',"1944-08-28")
         entreprise_df["Date du début de la période de l'établissement"]=pd.to_datetime(entreprise_df["Date du début de la période de l'établissement"])
@@ -238,7 +242,7 @@ class Data_sirene_nice:
         entreprise_df.to_csv(fichier_out)
         return f"generation du ficher {fichier_t1}: ok"
     
-# if __name__=='__main__':
+#if __name__=='__main__':
 #     # data=Data_sirene_nice.get_data()
 #     # features=Data_sirene_nice.get_feature()
 #     # liste_features=features.features.unique()
@@ -247,4 +251,5 @@ class Data_sirene_nice:
 #     #print(entreprise_df_clean)
 #     entreprise_df=Data_sirene_nice.sirene_distance_df()
 #     entreprise_t1_df=Data_sirene_nice.sirene_t1_df()
+#      Data_sirene_nice.ecriture_sirene_clean()
 #     print('ok')
