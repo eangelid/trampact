@@ -29,3 +29,6 @@ memoized-property
 termcolor
 
 # add project specific packages below this line
+shapefile
+dbfread
+lambert
