@@ -1,5 +1,6 @@
 import os
 import pandas as pd
+import numpy as np
 from sklearn.preprocessing import OneHotEncoder
 
 class Machine_learning_sirene:
@@ -29,83 +30,95 @@ class Machine_learning_sirene:
             return entreprise_df
   
     
-    def get_feature_ml_interressant():
-        #----------info---------------
-        #liste toutes les features interressants pour le machine learning
-        #   ==>renvoie liste
-        #
-        #Mise a jour: 12/06/2021
-        #----------end info---------------
-        Feature_ml_interessant=[
-                "Date de création de l'unité légale",
-                "Date de fermeture de l'unité légale",
-                #"Date de la dernière mise à jour de l'établissement",
-                #"etat_etab",
-                "effectifs",
-                "Classe de l'établissement",
-                #"Nature juridique de l'unité légale",
-                #"distance tram t1",
-                "proche t1"]
-        return Feature_ml_interessant
+    # def get_feature_ml_interressant():
+    #     #----------info---------------
+    #     #liste toutes les features interressants pour le machine learning
+    #     #   ==>renvoie liste
+    #     #
+    #     #Mise a jour: 12/06/2021
+    #     #----------end info---------------
+    #     Feature_ml_interessant=[
+    #             "Date de création de l'unité légale",
+    #             "Date de fermeture de l'unité légale",
+    #             #"Date de la dernière mise à jour de l'établissement",
+    #             #"etat_etab",
+    #             "effectifs",
+    #             "Classe de l'établissement",
+    #             #"Nature juridique de l'unité légale",
+    #             #"distance tram t1",
+    #             "proche t1"]
+    #     return Feature_ml_interessant
     
     
-    def encoder_feature():
+    def encoder_feature(list_feature, filtre_date=False, date_debut=2006,date_end=2012):
         #----------info---------------
         #Encodage des features pour le machine learning
-        #"Encodage" sur les dates ==> 2006-04-31==>2006
-        #   ==> dataframe
+        #Possibilité de creer un filtre par entre 2 date
         #
-        #Mise a jour: 12/06/2021
+        #Input:list_feature==>Liste feature
+        #Output==> dataframe, list encode x et y
+        #
+        #Target pour l'analyse ==>y "proche de t1"
+        #X==> Autre feature
+        #
+        #Mise a jour: 14/06/2021
         #----------end info---------------
         entreprise_df=Machine_learning_sirene.get_data_clean()
-        feature=Machine_learning_sirene.get_feature_ml_interressant()
+        feature=list_feature#Machine_learning_sirene.get_feature_ml_interressant()
         entreprise_ml_df=entreprise_df[feature]
         
-        # encodage de "Classe de l'établissement"
-        ohe = OneHotEncoder(sparse = False) # Instanciate encoder
-        ohe.fit(entreprise_ml_df[["Classe de l'établissement"]]) # Fit encoder
-        liste_encodage=list(ohe.categories_[0])
-        etablissement_encoder=ohe.transform(entreprise_ml_df[["Classe de l'établissement"]])
-        add_df=pd.concat([
-                        entreprise_ml_df["Classe de l'établissement"],
-                        pd.DataFrame(etablissement_encoder,columns = list(liste_encodage))
-                        ],axis=1)
-        ##injection dans le dataframe
-        entreprise_ml_df_encoder_0=pd.concat([
-                                entreprise_ml_df,
-                                add_df    
-                                ],axis=1)
-        entreprise_ml_df_encoder_0=entreprise_ml_df_encoder_0.drop(columns="Classe de l'établissement")
-        
-        # encodage de "effectifs"
-        ohe = OneHotEncoder(sparse = False) # Instanciate encoder
-        ohe.fit(entreprise_ml_df[["effectifs"]]) # Fit encoder
-        liste_encodage=list(ohe.categories_[0])
-        etablissement_encoder=ohe.transform(entreprise_ml_df[["effectifs"]])
-        add_df=pd.concat([
-                        entreprise_ml_df["effectifs"],
-                        pd.DataFrame(etablissement_encoder,columns = liste_encodage)
-                        ],axis=1)
-        ##injection dans le dataframe
-        entreprise_ml_df_encoder_1=pd.concat([
-                                entreprise_ml_df_encoder_0,
-                                add_df    
-                                ],axis=1)
-        entreprise_ml_df_encoder_1=entreprise_ml_df_encoder_1.drop(columns="effectifs")
-        
-        # encodage de "proche de t1"
-        ohe = OneHotEncoder(drop='if_binary',sparse = False) # Instanciate encoder
-        ohe.fit(entreprise_ml_df[["proche t1"]]) # Fit encoder
-        entreprise_ml_df_encoder_1["proche t1"]=ohe.transform(entreprise_df[["proche t1"]])
-        
-        #"Encodage sur les dates"
+        #Simplification des features date
+        #On garde que les années (on eleve les moins et les jours)
         #"Date de création de l'unité légale",
-        entreprise_ml_df_encoder_1["Date de création de l'unité légale"]=\
-        entreprise_ml_df_encoder_1["Date de création de l'unité légale"].dt.year
+        entreprise_ml_df["Date de création de l'unité légale"]=\
+        entreprise_ml_df["Date de création de l'unité légale"].dt.year
         #"Date de fermeture de l'unité légale"
-        entreprise_ml_df_encoder_1["Date de fermeture de l'unité légale"]=\
-        entreprise_ml_df_encoder_1["Date de fermeture de l'unité légale"].dt.year
-        return entreprise_ml_df_encoder_1
+        #entreprise_ml_df["Date de fermeture de l'unité légale"]=\
+        #entreprise_ml_df["Date de fermeture de l'unité légale"].dt.year
+        
+        #Filtre par date:
+        if filtre_date:
+            entreprise_ml_df=entreprise_ml_df[
+                                                np.logical_and(
+                                                        entreprise_ml_df["Date de création de l'unité légale"]>= date_debut,
+                                                        entreprise_ml_df["Date de création de l'unité légale"] <= date_end
+                                                                )
+                                                ].reset_index(drop=True)
+
+        #Definition de X
+        X=entreprise_ml_df.drop(columns="proche t1")
+        #Definition de y
+        y=entreprise_ml_df[["proche t1"]]
+
+        
+        # Encodage de X
+        # 1. INSTANTIATE
+        #Remarque importante, sparce=True (par defaut)
+        ohe =OneHotEncoder()
+        # 2. FIT
+        ohe.fit(X)
+        # 3. Transform
+        X_encoder = ohe.transform(X).toarray()
+        # 4. Recup categorie
+        list_X_encoder=np.concatenate(ohe.categories_).tolist()
+            #Autre methode
+            # list_X_encoder=[]
+            # for i in ohe.categories_:
+            #     i=i.tolist()#==>Transforme l'array en liste
+            #     list_X_encoder.extend(i)==>Met la liste dans une autre liste initial
+        
+        # Encodage de y
+        # 1. INSTANTIATE
+        #Remarque importante, sparce=True (par defaut)
+        ohe_proche_t1 = OneHotEncoder(drop='if_binary') # Instanciate encoder
+        # 2. FIT
+        ohe_proche_t1.fit(y) # Fit encoder
+        # 3. Transform
+        y_encoder=ohe_proche_t1.transform(y).toarray()
+        # 4. Recup categorie
+        list_y_encoder=np.concatenate(ohe_proche_t1.categories_).tolist()
+        
+        return y_encoder, X_encoder, list_y_encoder, list_X_encoder
 
 
 # if __name__=='__main__':
