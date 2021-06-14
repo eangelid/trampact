@@ -9,7 +9,7 @@ def get_data(file_name, is_local_csv=False):
 
         df_data = pd.read_csv(os.path.join(csv_path, file_name), index_col='iris_id')
     else:
-        df_data = pd.read_csv(file_name)
+        df_data = pd.read_csv(file_name, index_col='iris_id')
         
     return df_data
 
