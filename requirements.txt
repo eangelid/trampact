@@ -7,6 +7,7 @@ wheel>=0.29
 # data science
 numpy
 pandas
+pandas-profiling
 scikit-learn
 
 # tests/linter
@@ -28,7 +29,24 @@ joblib
 memoized-property
 termcolor
 
+# jupyter
+jupyter-client>=6.1.12
+jupyter-contrib-core>=0.3.3
+jupyter-contrib-nbextensions>=0.5.1
+jupyter-core>=4.7.1
+jupyter-highlight-selected-word>=0.2.0
+jupyter-latex-envs>=1.4.6
+jupyter-nbextensions-configurator>=0.4.1
+jupyter-packaging>=0.9.2
+jupyter-resource-usage>=0.5.1
+jupyter-server>=1.6.2
+jupyterlab>=3.0.14
+jupyterlab-pygments>=0.1.2
+jupyterlab-server>=2.4.0
+jupyterlab-widgets>=1.0.0
+
 # add project specific packages below this line
 shapefile
 dbfread
 lambert
+folium
