@@ -252,4 +252,5 @@ class Data_sirene_nice:
 #     entreprise_df=Data_sirene_nice.sirene_distance_df()
 #     entreprise_t1_df=Data_sirene_nice.sirene_t1_df()
 #      Data_sirene_nice.ecriture_sirene_clean()
+#      Data_sirene_nice.ecriture_sirene_t1_clean()
 #     print('ok')
