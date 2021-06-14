@@ -46,4 +46,7 @@ jupyterlab-server>=2.4.0
 jupyterlab-widgets>=1.0.0
 
 # add project specific packages below this line
+shapefile
+dbfread
+lambert
 folium
