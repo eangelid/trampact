@@ -50,5 +50,10 @@ pyshp
 dbfread
 lambert
 folium
+ipyleaflet
+geopandas
+json
+branca.colormap
 shapely
 scipy
+

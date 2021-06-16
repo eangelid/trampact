@@ -35,6 +35,7 @@ class Machine_learning_sirene:
     def get_data_clean_with_feature(list_feature):
         #----------info---------------
         #Recup data et fait un mask avec les features selectionnées==>renvoie un dataframe
+        #Fait une simplification sur les dates
         #
         #Input:list_feature==>Liste feature
         #Output==> dataframe,
@@ -44,6 +45,15 @@ class Machine_learning_sirene:
         #----------end info---------------
         entreprise_df=Machine_learning_sirene.get_data_clean()
         entreprise_ml_df=entreprise_df[list_feature]
+        
+        #Simplification des features date
+        #On garde que les années (on eleve les moins et les jours)
+        #"Date de création de l'unité légale",
+        entreprise_ml_df["Date de création de l'unité légale"]=\
+        entreprise_ml_df["Date de création de l'unité légale"].dt.year
+        #"Date de fermeture de l'unité légale"
+        #entreprise_ml_df["Date de fermeture de l'unité légale"]=\
+        #entreprise_ml_df["Date de fermeture de l'unité légale"].dt.year
         return entreprise_ml_df
     
     # def get_feature_ml_interressant():
@@ -79,19 +89,8 @@ class Machine_learning_sirene:
         #
         #Mise a jour: 14/06/2021
         #----------end info---------------
-        entreprise_df=Machine_learning_sirene.get_data_clean()
-        feature=list_feature#Machine_learning_sirene.get_feature_ml_interressant()
-        entreprise_ml_df=entreprise_df[feature]
-        
-        #Simplification des features date
-        #On garde que les années (on eleve les moins et les jours)
-        #"Date de création de l'unité légale",
-        entreprise_ml_df["Date de création de l'unité légale"]=\
-        entreprise_ml_df["Date de création de l'unité légale"].dt.year
-        #"Date de fermeture de l'unité légale"
-        #entreprise_ml_df["Date de fermeture de l'unité légale"]=\
-        #entreprise_ml_df["Date de fermeture de l'unité légale"].dt.year
-        
+        entreprise_ml_df=Machine_learning_sirene.get_data_clean_with_feature(list_feature)
+                
         #Filtre par date:
         if filtre_date:
             entreprise_ml_df=entreprise_ml_df[
