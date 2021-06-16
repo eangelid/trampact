@@ -54,3 +54,5 @@ ipyleaflet
 geopandas
 json
 branca.colormap
+shapely
+
