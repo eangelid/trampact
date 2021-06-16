@@ -2,6 +2,9 @@ import os
 import pandas as pd
 import numpy as np
 from sklearn.preprocessing import OneHotEncoder
+from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import train_test_split
+from sklearn.model_selection import cross_validate
 
 class Machine_learning_sirene:
     
@@ -29,6 +32,29 @@ class Machine_learning_sirene:
             entreprise_df["Date de fermeture de l'unité légale"]=pd.to_datetime(entreprise_df["Date de fermeture de l'unité légale"])
             return entreprise_df
   
+    def get_data_clean_with_feature(list_feature):
+        #----------info---------------
+        #Recup data et fait un mask avec les features selectionnées==>renvoie un dataframe
+        #Fait une simplification sur les dates
+        #
+        #Input:list_feature==>Liste feature
+        #Output==> dataframe,
+        #
+        #
+        #Mise a jour: 16/06/2021
+        #----------end info---------------
+        entreprise_df=Machine_learning_sirene.get_data_clean()
+        entreprise_ml_df=entreprise_df[list_feature]
+        
+        #Simplification des features date
+        #On garde que les années (on eleve les moins et les jours)
+        #"Date de création de l'unité légale",
+        entreprise_ml_df["Date de création de l'unité légale"]=\
+        entreprise_ml_df["Date de création de l'unité légale"].dt.year
+        #"Date de fermeture de l'unité légale"
+        #entreprise_ml_df["Date de fermeture de l'unité légale"]=\
+        #entreprise_ml_df["Date de fermeture de l'unité légale"].dt.year
+        return entreprise_ml_df
     
     # def get_feature_ml_interressant():
     #     #----------info---------------
@@ -63,19 +89,8 @@ class Machine_learning_sirene:
         #
         #Mise a jour: 14/06/2021
         #----------end info---------------
-        entreprise_df=Machine_learning_sirene.get_data_clean()
-        feature=list_feature#Machine_learning_sirene.get_feature_ml_interressant()
-        entreprise_ml_df=entreprise_df[feature]
-        
-        #Simplification des features date
-        #On garde que les années (on eleve les moins et les jours)
-        #"Date de création de l'unité légale",
-        entreprise_ml_df["Date de création de l'unité légale"]=\
-        entreprise_ml_df["Date de création de l'unité légale"].dt.year
-        #"Date de fermeture de l'unité légale"
-        #entreprise_ml_df["Date de fermeture de l'unité légale"]=\
-        #entreprise_ml_df["Date de fermeture de l'unité légale"].dt.year
-        
+        entreprise_ml_df=Machine_learning_sirene.get_data_clean_with_feature(list_feature)
+                
         #Filtre par date:
         if filtre_date:
             entreprise_ml_df=entreprise_ml_df[
@@ -84,7 +99,8 @@ class Machine_learning_sirene:
                                                         entreprise_ml_df["Date de création de l'unité légale"] <= date_end
                                                                 )
                                                 ].reset_index(drop=True)
-
+            #pour eviter le data leakage
+            entreprise_ml_df=entreprise_ml_df.drop(columns=["Date de création de l'unité légale"])
         #Definition de X
         X=entreprise_ml_df.drop(columns="proche t1")
         #Definition de y
@@ -120,9 +136,50 @@ class Machine_learning_sirene:
         
         return y_encoder, X_encoder, list_y_encoder, list_X_encoder
 
+    def cros_validation_logistic_regression(cv,feature_ml,filtre_date=False, date_debut=2006,date_end=2012):
+        #----------info---------------
+        #Cross validation pour la logistic regression
+        #recup l'encodage avant
+        #
+        #Input:
+        # cv==>cross validation
+        # feature_ml==>Liste feature
+        # filtre_date==> si on fait un filtre sur le DF
+        #            date_debut=date du debut
+        #            date_end=date du debut
+        #Output==>  objet cross validation ==>cv_results_logreg
+        #           list_encodage
+        #
+        #Target pour l'analyse ==>y "proche de t1"
+        #X==> Autre feature
+        #
+        #Mise a jour: 15/06/2021
+        #----------end info---------------
+        y_encoder, X_encoder, list_y_encoder, list_X_encoder=\
+            Machine_learning_sirene.encoder_feature(feature_ml,filtre_date,date_debut,date_end)
+        X_train, X_test, y_train, y_test = train_test_split(
+                    X_encoder, y_encoder, test_size=0.3,random_state=1)
+        
+        cv_results_logreg = cross_validate(LogisticRegression(),X_train,y_train,
+                                  cv=cv,
+                                  scoring=['accuracy'],
+                                  return_estimator=True)
+        return cv_results_logreg, list_X_encoder
 
-# if __name__=='__main__':
-#     # data=Machine_learning_sirene.get_data_clean()
-#     # entreprise_ml_df=Machine_learning_sirene.encoder_feature()
+
+
+if __name__=='__main__':
+#     #data=Machine_learning_sirene.get_data_clean()
+    feature_ml=[
+            "Date de création de l'unité légale",
+            "effectifs",
+            "Classe de l'établissement",
+            #"Nature juridique de l'unité légale",
+            "proche t1"
+            ]
+    cv=10
+    cv_results_logreg=Machine_learning_sirene.cros_validation_logistic_regression(cv,feature_ml,\
+                        filtre_date=True, date_debut=2005,date_end=2007)
+    
 #     # print(entreprise_ml_df)
 #     print('ok')

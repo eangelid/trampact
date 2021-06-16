@@ -55,4 +55,5 @@ geopandas
 json
 branca.colormap
 shapely
+scipy
 
