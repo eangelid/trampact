@@ -51,3 +51,4 @@ dbfread
 lambert
 folium
 shapely
+scipy
