@@ -32,6 +32,19 @@ class Machine_learning_sirene:
             entreprise_df["Date de fermeture de l'unité légale"]=pd.to_datetime(entreprise_df["Date de fermeture de l'unité légale"])
             return entreprise_df
   
+    def get_data_clean_with_feature(list_feature):
+        #----------info---------------
+        #Recup data et fait un mask avec les features selectionnées==>renvoie un dataframe
+        #
+        #Input:list_feature==>Liste feature
+        #Output==> dataframe,
+        #
+        #
+        #Mise a jour: 16/06/2021
+        #----------end info---------------
+        entreprise_df=Machine_learning_sirene.get_data_clean()
+        entreprise_ml_df=entreprise_df[list_feature]
+        return entreprise_ml_df
     
     # def get_feature_ml_interressant():
     #     #----------info---------------
