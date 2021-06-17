@@ -11,8 +11,10 @@ from branca.colormap import linear
     - a feature from df
     Note that df must contain an 'iris_id' column
 '''
-csvfile_path = "../raw_data/data_BD_GENT_2006.csv"
-#feature = "t_actifs_2006"
+csvfile_path = "gs://trampact_storage/data/g_p_2006_2016_Nice.csv"
+#"../raw_data/data_BD_GENT_2006.csv"
+feature = 'TE_HH_2voit'
+#"t_actifs_2006"
 
 center = (43.723348, 7.285484)
 zoom = 10
@@ -20,7 +22,7 @@ zoom = 10
 
 class Contour():
     def __init__(self):
-        self.feature ='t_actifs_2006'
+        self.feature = feature
         self.get_files(csvfile_path)
         self.get_geo_data(city_of_nice=False)
         self.get_features_data(self.feature)
@@ -114,7 +116,7 @@ class Contour():
                          },
                          fill=False)
 
-        line2 = Polyline(name='Ligne 2',
+        '''line2 = Polyline(name='Ligne 2',
                          locations=self.points_t2,
                          style={
                              'color': 'blue',
@@ -124,25 +126,25 @@ class Contour():
                              'dashArray': '2',
                              'fillOpacity': 0.8
                          },
-                         fill=False)
+                         fill=False)'''
 
         layer = ipyleaflet.Choropleth(geo_data=self.dict_json,
                                       choro_data=self.feature_dict,
                                       colormap=colormap,
                                       border_color='gray',
                                       style={
-                                          'fillOpacity': 0.75,
+                                          'fillOpacity': 0.90,
                                           'dashArray': '2, 2'
                                       })
 
         legend = LegendControl(
             {
-                "low":
+               'low': #str(np.min(list(self.feature_dict.values())))
                 colormap.rgb_hex_str(np.min(list(self.feature_dict.values()))),
                 "medium":
                 colormap.rgb_hex_str(np.mean(list(
                     self.feature_dict.values()))),
-                "High":
+                "high":
                 colormap.rgb_hex_str(np.max(list(self.feature_dict.values())))
             },
             name=self.feature,
@@ -152,7 +154,7 @@ class Contour():
         m.add_control(legend)
         m.add_layer(layer)
         m.add_layer(line1)
-        m.add_layer(line2)
+        #m.add_layer(line2)
 
         control = LayersControl(position='topright')
         m.add_control(LayersControl())
