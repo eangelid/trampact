@@ -57,3 +57,6 @@ branca.colormap
 shapely
 scipy
 
+# frontend
+streamlit
+
