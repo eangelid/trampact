@@ -2,18 +2,17 @@ import pandas as pd
 import numpy as np
 import geopandas as gpd
 import ipyleaflet
-from ipyleaflet import Map, GeoData, basemaps, LayersControl,Polyline, LegendControl,LayersControl
+from ipyleaflet import Map, GeoData, basemaps, LayersControl, Polyline, LegendControl, LayersControl
 import json
 import branca.colormap as cm
 from branca.colormap import linear
-
 '''To plot a colored map of iris by a feature provide:
     - a csvfile_path to df
     - a feature from df
     Note that df must contain an 'iris_id' column
 '''
 csvfile_path = "../raw_data/data_BD_GENT_2006.csv"
-feature = "t_actifs_2006"
+#feature = "t_actifs_2006"
 
 center = (43.723348, 7.285484)
 zoom = 10
@@ -21,11 +20,12 @@ zoom = 10
 
 class Contour():
     def __init__(self):
+        self.feature ='t_actifs_2006'
         self.get_files(csvfile_path)
         self.get_geo_data(city_of_nice=False)
-        self.get_features_data(feature)
+        self.get_features_data(self.feature)
         self.get_lines()
-        self.plot_map(center=center, zoom=zoom)
+        #self.plot_map(center=center, zoom=zoom)
 
     def get_files(self, csvfile_path):
         '''Read data from files:
@@ -39,21 +39,27 @@ class Contour():
         self.csv_t1 = pd.read_csv(csv_t1_path)
         self.csv_t2 = pd.read_csv(csv_t2_path)
         self.csv = pd.read_csv(csvfile_path)
-        self.gdf = gpd.read_file(zipfile)
+        self.csv.iris_id = self.csv.iris_id.map(lambda x: str(0) + str(x))
+        self.data = gpd.read_file(zipfile)
+
+
+    def set_is_city_of_nice(self, city_of_nice=False):
+        self.get_geo_data(city_of_nice)
+        self.get_features_data(self.feature)
 
     def get_geo_data(self, city_of_nice=False):
         '''Read and filter geo data at a departement level by default
            To filter at a city level, set boolean to True
         '''
         if not city_of_nice:
-            mask = self.gdf[[
+            mask = self.data[[
                 'CODE_IRIS'
             ]].apply(lambda x: x.str.startswith('06')).any(axis=1)
             self.city_of_nice = False
         else:
-            mask = self.gdf['NOM_COM'] == 'Nice'
+            mask = self.data['NOM_COM'] == 'Nice'
             self.city_of_nice = True
-        self.gdf = self.gdf[mask]
+        self.gdf = self.data[mask]
         self.gdf_json = self.gdf.to_json()
         dict_json = json.loads(self.gdf_json)
         for feature in dict_json['features']:
@@ -64,7 +70,7 @@ class Contour():
         '''Set feature data to dictionary format
            Set length accoring to geo level
         '''
-        self.csv.iris_id = self.csv.iris_id.map(lambda x: str(0) + str(x))
+        #import ipdb; ipdb.set_trace()
         self.feature_dict = dict(
             zip(self.csv['iris_id'].tolist(), self.csv[feature].tolist()))
         if self.city_of_nice == False:
@@ -139,7 +145,7 @@ class Contour():
                 "High":
                 colormap.rgb_hex_str(np.max(list(self.feature_dict.values())))
             },
-            name=feature,
+            name=self.feature,
             position="bottomright")
 
         m = ipyleaflet.Map(center=center, zoom=zoom)
