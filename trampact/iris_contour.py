@@ -2,18 +2,19 @@ import pandas as pd
 import numpy as np
 import geopandas as gpd
 import ipyleaflet
-from ipyleaflet import Map, GeoData, basemaps, LayersControl,Polyline, LegendControl,LayersControl
+from ipyleaflet import Map, GeoData, basemaps, LayersControl, Polyline, LegendControl, LayersControl
 import json
 import branca.colormap as cm
 from branca.colormap import linear
-
 '''To plot a colored map of iris by a feature provide:
     - a csvfile_path to df
     - a feature from df
     Note that df must contain an 'iris_id' column
 '''
-csvfile_path = "../raw_data/data_BD_GENT_2006.csv"
-feature = "t_actifs_2006"
+csvfile_path = "gs://trampact_storage/data/g_p_2006_2016_Nice.csv"
+#"../raw_data/data_BD_GENT_2006.csv"
+feature = 'TE_HH_2voit'
+#"t_actifs_2006"
 
 center = (43.723348, 7.285484)
 zoom = 10
@@ -21,11 +22,12 @@ zoom = 10
 
 class Contour():
     def __init__(self):
+        self.feature = feature
         self.get_files(csvfile_path)
         self.get_geo_data(city_of_nice=False)
-        self.get_features_data(feature)
+        self.get_features_data(self.feature)
         self.get_lines()
-        self.plot_map(center=center, zoom=zoom)
+        #self.plot_map(center=center, zoom=zoom)
 
     def get_files(self, csvfile_path):
         '''Read data from files:
@@ -39,21 +41,27 @@ class Contour():
         self.csv_t1 = pd.read_csv(csv_t1_path)
         self.csv_t2 = pd.read_csv(csv_t2_path)
         self.csv = pd.read_csv(csvfile_path)
-        self.gdf = gpd.read_file(zipfile)
+        self.csv.iris_id = self.csv.iris_id.map(lambda x: str(0) + str(x))
+        self.data = gpd.read_file(zipfile)
+
+
+    def set_is_city_of_nice(self, city_of_nice=False):
+        self.get_geo_data(city_of_nice)
+        self.get_features_data(self.feature)
 
     def get_geo_data(self, city_of_nice=False):
         '''Read and filter geo data at a departement level by default
            To filter at a city level, set boolean to True
         '''
         if not city_of_nice:
-            mask = self.gdf[[
+            mask = self.data[[
                 'CODE_IRIS'
             ]].apply(lambda x: x.str.startswith('06')).any(axis=1)
             self.city_of_nice = False
         else:
-            mask = self.gdf['NOM_COM'] == 'Nice'
+            mask = self.data['NOM_COM'] == 'Nice'
             self.city_of_nice = True
-        self.gdf = self.gdf[mask]
+        self.gdf = self.data[mask]
         self.gdf_json = self.gdf.to_json()
         dict_json = json.loads(self.gdf_json)
         for feature in dict_json['features']:
@@ -64,7 +72,7 @@ class Contour():
         '''Set feature data to dictionary format
            Set length accoring to geo level
         '''
-        self.csv.iris_id = self.csv.iris_id.map(lambda x: str(0) + str(x))
+        #import ipdb; ipdb.set_trace()
         self.feature_dict = dict(
             zip(self.csv['iris_id'].tolist(), self.csv[feature].tolist()))
         if self.city_of_nice == False:
@@ -108,7 +116,7 @@ class Contour():
                          },
                          fill=False)
 
-        line2 = Polyline(name='Ligne 2',
+        '''line2 = Polyline(name='Ligne 2',
                          locations=self.points_t2,
                          style={
                              'color': 'blue',
@@ -118,35 +126,35 @@ class Contour():
                              'dashArray': '2',
                              'fillOpacity': 0.8
                          },
-                         fill=False)
+                         fill=False)'''
 
         layer = ipyleaflet.Choropleth(geo_data=self.dict_json,
                                       choro_data=self.feature_dict,
                                       colormap=colormap,
                                       border_color='gray',
                                       style={
-                                          'fillOpacity': 0.75,
+                                          'fillOpacity': 0.90,
                                           'dashArray': '2, 2'
                                       })
 
         legend = LegendControl(
             {
-                "low":
+               'low': #str(np.min(list(self.feature_dict.values())))
                 colormap.rgb_hex_str(np.min(list(self.feature_dict.values()))),
                 "medium":
                 colormap.rgb_hex_str(np.mean(list(
                     self.feature_dict.values()))),
-                "High":
+                "high":
                 colormap.rgb_hex_str(np.max(list(self.feature_dict.values())))
             },
-            name=feature,
+            name=self.feature,
             position="bottomright")
 
         m = ipyleaflet.Map(center=center, zoom=zoom)
         m.add_control(legend)
         m.add_layer(layer)
         m.add_layer(line1)
-        m.add_layer(line2)
+        #m.add_layer(line2)
 
         control = LayersControl(position='topright')
         m.add_control(LayersControl())
