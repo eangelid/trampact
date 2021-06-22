@@ -1,6 +1,8 @@
 import matplotlib.pyplot as plt
 
-def draw_hist(df_2006, df_2016, df_2006_T1, df_2016_T1, feature_label, is_percentage=False, bins=20):
+def draw_hist(df_2006, df_2016, df_2006_T1, df_2016_T1, feature_label, bins=20):
+    is_percentage = feature_label.startswith('tx')
+    
     fig, axs = plt.subplots(2,2, figsize=(12,11))
     axs[0][0].hist(df_2006[f'{feature_label}_2006'], bins=bins)
     axs[0][1].hist(df_2016[f'{feature_label}_2016'], bins=bins)
