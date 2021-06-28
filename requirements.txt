@@ -52,8 +52,9 @@ lambert
 folium
 ipyleaflet
 geopandas
-json
-branca.colormap
+json5
+branca
 shapely
 scipy
+statsmodels
 
