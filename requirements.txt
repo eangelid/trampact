@@ -58,3 +58,6 @@ shapely
 scipy
 statsmodels
 
+# frontend
+streamlit
+
